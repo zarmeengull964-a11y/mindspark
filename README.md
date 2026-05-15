@@ -136,9 +136,7 @@ MindSpark is a full-featured EdTech React application that includes:
 •Dark and light theme toggle
 •Fully responsive design built with Bootstrap
 
-The PHP backend is entirely optional. The app runs as a fully standalone frontend application using localStorage, making it easy to deploy anywhere without a server.frontend app ke tor par bhi perfectly deploy ho sakta hai.
-
-These features call `requireAuth(...)` from `useAuthGate`, so they automatically pop the Login modal for guests:
+The PHP backend is entirely optional. The app runs as a fully standalone frontend application using localStorage, making it easy to deploy anywhere without a server.
 - AI Chatbot (`/chatbot`)
 - PDF notes (`/pdfs`)
 - Progress, Quiz submissions, Certificate
