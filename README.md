@@ -1,48 +1,142 @@
- MindSpark — v5 (updated)
+ Project Overview
+MindSpark is a web-based EdTech platform designed to teach students programming languages in an interactive and engaging way. Similar in concept to W3Schools or freeCodeCamp, it features a custom UI, a built-in authentication system, a quiz engine, progress tracking, and a certificate generator — all in one application.
 
-## What changed in this update
+Tech Stack
 
-- **Single Sign Up button in the navbar.** Clicking it opens a modal with both **Login** and **Sign Up** tabs. The duplicate "Sign In" button is gone.
-- **Search bar is wider** now that the duplicate button is removed (desktop only — search collapses into the mobile drawer on small screens).
-- **AI Chatbot icon refreshed.** Replaced the ✨ emoji with a proper sparkle SVG icon that follows the theme color.
-- **Mobile hamburger drawer** now includes a **Home** link, plus Sign Up / Login buttons at the top and the search field.
-- **Continue with Google** works as soon as you set `REACT_APP_GOOGLE_CLIENT_ID` (see `.env.example`).
-- **PHP backend bug fixed** (`PDO::ATTR_ERRFMODE` → `PDO::ATTR_ERRMODE`) and `backend/data/` is pre-created so signup writes succeed on a fresh install.
-- Auth flow stays exactly the same: backend stores users (`backend/data/user.json`), issues a Bearer token, and gates the chatbot/PDF features through `useAuthGate`.
+Layer	Technology	Version
+Frontend Framework	React	18.3.1
+Build Tool	Vite	7.0.0
+Routing	React Router DOM	6.26.2
+Styling	Bootstrap + Custom CSS	5.3.3
+Authentication	Google OAuth + LocalStorage	@react-oauth/google ^0.13.5
+Backend (Optional)	PHP REST API	Custom endpoints
 
-## Run on XAMPP (Windows)
+Project Structure
+mindspark_fixed/
+├── src/
+│   ├── pages/          All main pages (Home, CoursePage, Quiz...)
+│   ├── components/     Reusable UI components (Navbar, Footer...)
+│   ├── context/        Global state (Auth, Theme, Progress, Toast)
+│   ├── data/           Course content, quizzes, assignments
+│   └── utils/          Helper functions (notes, scroll)
+├── .env                Google OAuth Client ID & API base URL
+├── index.html          App entry point
+└── vite.config.js      Vite build configuration
 
-1. **Copy the project** into `C:\xampp\htdocs\mindspark` so the folder is `htdocs/mindspark/{src, backend, public, package.json, ...}`.
-2. **Start Apache** from the XAMPP control panel. (MySQL is not required — users are saved to `backend/data/user.json`. The MySQL `schema.sql` is only there if you later want to migrate.)
-3. **Test the backend** by opening:
-   `http://localhost/mindspark/backend/login.php`
-   You should see `{"ok":false,"error":"Email and password required."}`. If you instead see PHP source code or a 404, Apache isn't serving the folder — check the path.
-4. **Install Node deps and start the React app:**
-   ```bash
-   cd C:\xampp\htdocs\mindspark
-   npm install
-   npm start
-   ```
-   The app opens at `http://localhost:3000`.
-5. **Configure environment (optional but recommended).** Copy `.env.example` to `.env` in the project root, then restart `npm start`:
-   - `REACT_APP_API_BASE` — leave the default if your folder is `htdocs/mindspark`.
-   - `REACT_APP_GOOGLE_CLIENT_ID` — paste your Google OAuth Web Client ID to enable "Continue with Google". Leave empty to hide the button.
+Pages & Routes
 
-## Google Sign-In setup (5 minutes)
+Route	Page	Description
+/	Home	Hero section, course cards, and features showcase
+/course/:language	CoursePage	Topic-wise lesson viewer with live code preview
+/tutorials	Tutorials	Curated video tutorials listing
+/reference	Reference	Quick syntax reference cards
+/exercises	Exercises	Coding exercises and assignments
+/quiz	Quiz	Multiple-choice quiz per topic
+/progress	Progress	Visual learning progress tracker
+/certificate	Certificate	Downloadable course completion certificate
+/pdfs	PDFs	PDF notes and study resources
+/chatbot	Chatbot	AI-powered assistant for learner help
+/tools	Tools	Developer utility tools
+/login	Login	User login page
+/signup	Signup	New user registration page
 
-1. Go to https://console.cloud.google.com/apis/credentials → **Create Credentials → OAuth client ID → Web application**.
-2. Authorized JavaScript origins: `http://localhost:3000` (and your production URL when deploying).
-3. Copy the **Client ID** into `.env` as `REACT_APP_GOOGLE_CLIENT_ID=...` and restart `npm start`.
-4. The "Continue with Google" button appears at the top of the Sign Up modal. The PHP `backend/google.php` verifies the token against Google's `tokeninfo` endpoint, creates the user if new, and returns a session token.
+Available Courses
+MindSpark currently includes two complete programming courses:
 
-## Troubleshooting
+Course	Topics	Features
+HTML	18 topics	Introduction to mini-project, live preview, YouTube videos
+CSS	16 topics	Flexbox, Grid, Animations, Responsive Design, Variables
+JavaScript	Planned	Full JS curriculum coming soon
 
-- **"PHP backend is not running"** → Apache is not started, or the `REACT_APP_API_BASE` URL doesn't match where the `backend` folder lives. Open the URL above (step 3) in a browser to verify.
-- **Sign Up button does nothing** → Open DevTools → Console. The modal is wired up via `AuthGateContext`; if you see a React error here it usually means a stale build — stop `npm start`, run `npm install`, then `npm start` again.
-- **Permission denied writing user.json** → Right-click `backend/data` → Properties → Security → give Apache (`Users` on Windows) write permission. The folder is created automatically; it just needs to be writable.
-- **Google button missing** → `REACT_APP_GOOGLE_CLIENT_ID` is empty or you didn't restart `npm start` after editing `.env`.
+Each course includes:
+•Multiple lessons with live in-browser code previews (iframe-based)
+•A syntax quick-reference table
+•Embedded YouTube video links for each topic
+•Related exercises and quizzes
 
-## Routes that require sign-in
+Authentication System
+MindSpark uses a dual-mode authentication system that works both offline and online.
+
+1. Local Authentication (Offline-first)
+•User accounts are stored in the browser's localStorage
+•Passwords are hashed using SHA-256 via the Web Crypto API
+•Signup and login work fully offline without any backend
+
+2. Google OAuth
+•Powered by the @react-oauth/google library
+•User details are extracted from the Google JWT credential
+•One-click sign-in experience
+
+3. PHP Backend (Optional Sync)
+•If a backend is available, syncs to /login.php, /signup.php, and /google.php
+•Gracefully falls back to localStorage if the network is unavailable
+
+Key Features
+
+Feature	Description
+Dark / Light Theme	App-wide theme toggle managed via ThemeContext
+Progress Tracking	Per-course and per-topic progress stored via ProgressContext
+Toast Notifications	Global success and error messages via ToastContext
+Error Boundary	Graceful error handling — prevents full app crashes
+Scroll to Top	Automatically scrolls to top on every route change
+Accessibility	Skip link, ARIA attributes, and semantic HTML throughout
+Auth Gate	Certain features require login, enforced by AuthGateContext
+Signup Modal	Inline signup modal — no redirect needed
+PDF Resources	Downloadable PDF notes in the resources section
+AI Chatbot	Dedicated chatbot page for learner assistance
+Certificate Generator	Generates a personalized certificate on course completion
+Code Editor Promo	Interactive live code editor section on the homepage
+
+State Management (Context API)
+The app uses five nested React Context Providers for global state:
+•ThemeProvider — Manages dark/light mode across the app
+•AuthProvider — Handles user auth state: login, signup, logout, Google login
+•ProgressProvider — Tracks course and topic completion progress
+•ToastProvider — Provides a global notification/toast system
+•AuthGateProvider — Controls access to protected features
+
+Setup & Installation
+
+Prerequisites
+•Node.js (latest LTS version recommended)
+•npm or yarn
+•A Google OAuth Client ID (optional, only needed for Google login)
+
+Installation Steps
+Step 1 — Unzip and navigate into the project:
+unzip mindsparkfinal.zip && cd mindspark_fixed
+
+Step 2 — Install dependencies:
+npm install
+
+Step 3 — Set up the environment file:
+cp .env.example .env
+# Add your Google OAuth Client ID inside .env
+
+Step 4 — Start the development server:
+npm run dev
+
+Step 5 — Build for production:
+npm run build
+
+Environment Variables
+
+Variable	Description	Default Value
+VITE_GOOGLE_CLIENT_ID	Your Google OAuth Client ID	Pre-set in .env
+VITE_API_BASE	URL of the PHP backend	http://localhost/backend
+
+Summary
+MindSpark is a full-featured EdTech React application that includes:
+•Complete HTML and CSS courses with live in-browser code previews
+•Robust dual-mode authentication (local storage + Google OAuth)
+•Learning progress tracking and certificate generation
+•A quiz engine and coding exercises
+•An AI chatbot for learner support
+•A PDF resources section
+•Dark and light theme toggle
+•Fully responsive design built with Bootstrap
+
+The PHP backend is entirely optional. The app runs as a fully standalone frontend application using localStorage, making it easy to deploy anywhere without a server.frontend app ke tor par bhi perfectly deploy ho sakta hai.
 
 These features call `requireAuth(...)` from `useAuthGate`, so they automatically pop the Login modal for guests:
 - AI Chatbot (`/chatbot`)
